@@ -37,7 +37,7 @@ void setup() {
   
   pinMode(touchPin, INPUT);
   pinMode(relauPin, OUTPUT); 
-  for (int thisPin = 5; thisPin < pinCount; thisPin++) {
+  for (int thisPin = 0; thisPin < pinCount; thisPin++) {
     pinMode(ledPins[thisPin], OUTPUT);
   }
 
@@ -60,13 +60,11 @@ void loop() {
 void onOffLed(){
     buttonTouchState = !buttonTouchState;
     if(buttonTouchState){
-        for (int thisPin = 5; thisPin < pinCount; thisPin++) {
-            digitalWrite(ledPins[thisPin], HIGH);
-        }
+        digitalWrite(ledPins[1], HIGH);
+        digitalWrite(ledPins[2], HIGH);
     }else{
-        for (int thisPin = 5; thisPin < pinCount; thisPin++) {
-            digitalWrite(ledPins[thisPin], LOW);
-        }
+        digitalWrite(ledPins[1], LOW);
+        digitalWrite(ledPins[2], LOW);
    }
 }
 // GET TEMPERATURE
