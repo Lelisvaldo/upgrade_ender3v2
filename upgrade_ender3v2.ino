@@ -56,7 +56,6 @@ void loop() {
     countTimerToOff = -1.0;
   }
 
-
   displayOled();
   delay(1000);
 }
