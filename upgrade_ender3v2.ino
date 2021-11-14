@@ -17,29 +17,29 @@ Thermistor temp(A0);
 /*    On an arduino LEONARDO:   2(SDA),  3(SCL)     */
 /****************************************************/
 int touchPin = 4;
-int ledPins[] = {6,7};
+int ledPins1 = 6;
+int ledPins2 = 7;
 int relauPin = 8;
 
-int pinCount = 2; 
 bool buttonTouchState = false;
+const int t = 35;
 const int millisecondsToOff = 0;
-float countTimerToOff = 180;
+float countTimerToOff = -180;
 
 void setup() {
   Serial.begin(9600);
-  
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;); // Don't proceed, loop forever
   }
-  
+
   display.clearDisplay(); // Clear the buffer
-  
+
   pinMode(touchPin, INPUT);
-  pinMode(relauPin, OUTPUT); 
-  for (int thisPin = 0; thisPin < pinCount; thisPin++) {
-    pinMode(ledPins[thisPin], OUTPUT);
-  }
+  pinMode(relauPin, OUTPUT);
+  pinMode(ledPins1, OUTPUT);
+  pinMode(ledPins2, OUTPUT);
 
   digitalWrite(relauPin, LOW); // Defines that the relay is off, I use the connection normally on.
 }
@@ -47,38 +47,48 @@ void setup() {
 void loop() {
   int state = digitalRead(touchPin);
 
-  if(state == true)
+  if (state == true)
     onOffLed();
-  
-  countTimerToOff > millisecondsToOff ? countTimer(getTemperatura()) : digitalWrite(relauPin, HIGH);
+
+  if(getTemperatura() <= t){
+    countTimer();
+  }else{
+    countTimerToOff = -1.0;
+  }
+
 
   displayOled();
   delay(1000);
 }
 
 // SWITCH ON LED
-void onOffLed(){
-    buttonTouchState = !buttonTouchState;
-    if(buttonTouchState){
-        digitalWrite(ledPins[1], HIGH);
-        digitalWrite(ledPins[2], HIGH);
-    }else{
-        digitalWrite(ledPins[1], LOW);
-        digitalWrite(ledPins[2], LOW);
-   }
+void onOffLed() {
+  buttonTouchState = !buttonTouchState;
+  if (buttonTouchState) {
+    digitalWrite(ledPins1, HIGH);
+    digitalWrite(ledPins2, HIGH);
+  } else {
+    digitalWrite(ledPins1, LOW);
+    digitalWrite(ledPins2, LOW);
+  }
 }
 // GET TEMPERATURE
-int getTemperatura(){
+int getTemperatura() {
   int temperature = temp.getTemp();
   return temperature;
 }
 
 // INCREASE THE COUNTER TO DISCONNECT THE RELAY
-void countTimer(int t){
-  t <= 30 ? countTimerToOff -= 0.05 : countTimerToOff = 0;
+void countTimer() {
+    if(countTimerToOff < millisecondsToOff){
+      countTimerToOff += 0.05;
+    }else{
+      digitalWrite(relauPin, HIGH);
+    }
 }
 
 void displayOled() {
+  //TEXT ABOUT THE TEMPERATURE OF HOT-END
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
@@ -87,11 +97,10 @@ void displayOled() {
   display.print(getTemperatura());
   display.write(248);
   display.print("C");
-
-  display.setCursor(0, 15);
-  display.print("Desligara em \nT -");
+  //TEXT ABOUT SHUTDOWN TIME
+  display.setCursor(0, 12);
+  display.print("Shutdown in T ");
   display.print(countTimerToOff);
-
+  
   display.display();
-
 }
